@@ -7,22 +7,29 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using JokesWebApp.Data;
 using JokesWebApp.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace JokesWebApp.Controllers
 {
     public class JokesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly ILogger<JokesController> _logger;
 
-        public JokesController(ApplicationDbContext context)
+        public JokesController(ApplicationDbContext context, UserManager<IdentityUser> userManager, ILogger<JokesController> logger)
         {
             _context = context;
+            _userManager = userManager;
+            _logger = logger;
         }
 
         // GET: Jokes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Joke.ToListAsync());
+            var jokes = await _context.Joke.ToListAsync();
+
+            return View(jokes);
         }
 
         // GET: Jokes/ShowSearchForm
@@ -34,7 +41,10 @@ namespace JokesWebApp.Controllers
         // GET: Jokes/ShowSearchResults
         public async Task<IActionResult> ShowSearchResults(string SearchPhrase)
         {
-            return View("Index", await _context.Joke.Where(j => j.JokeQuestion.Contains(SearchPhrase)).ToListAsync());
+            var matchingJokes = await _context.Joke
+        .Where(j => j.JokeQuestion.ToUpper().Contains(SearchPhrase.ToUpper()))
+        .ToListAsync();
+            return View("Index", matchingJokes);
         }
 
         // GET: Jokes/Details/5
@@ -68,14 +78,39 @@ namespace JokesWebApp.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,JokeQuestion,JokeAnswer")] Joke joke)
+        public async Task<IActionResult> Create([Bind("Id, JokeQuestion, JokeAnswer, Poster")] Joke joke)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             if (ModelState.IsValid)
             {
-                _context.Add(joke);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (currentUser != null)
+                {
+                    // Set the IdPoster property of the Joke entity
+                    joke.Poster = currentUser.Id;
+
+                    // Add the joke to the context and save changes
+                    _context.Add(joke);
+                    await _context.SaveChangesAsync();
+
+
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    _logger.LogError("Current user is null.");
+                }
             }
+            else
+            {
+                _logger.LogError("Model state is invalid. ModelState: {@ModelState}", ModelState);
+            }
+
+            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+            {
+                _logger.LogError(error.ErrorMessage);
+            }
+
             return View(joke);
         }
 
@@ -102,7 +137,7 @@ namespace JokesWebApp.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,JokeQuestion,JokeAnswer")] Joke joke)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,JokeQuestion,JokeAnswer,Poster")] Joke joke)
         {
             if (id != joke.Id)
             {
@@ -111,6 +146,10 @@ namespace JokesWebApp.Controllers
 
             if (ModelState.IsValid)
             {
+                var currentUser = await _userManager.GetUserAsync(User);
+
+                joke.Poster = currentUser.Id;
+
                 try
                 {
                     _context.Update(joke);

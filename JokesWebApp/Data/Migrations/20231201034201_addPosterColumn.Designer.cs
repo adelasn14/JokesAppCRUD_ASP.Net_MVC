@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JokesWebApp.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231126151736_initialsetup")]
-    partial class initialsetup
+    [Migration("20231201034201_addPosterColumn")]
+    partial class addPosterColumn
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,6 +31,10 @@ namespace JokesWebApp.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("JokeQuestion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Poster")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

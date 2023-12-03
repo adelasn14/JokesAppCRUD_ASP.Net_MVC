@@ -5,9 +5,8 @@
 namespace JokesWebApp.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class initialsetup : Migration
+    public partial class addPosterColumn : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -17,7 +16,8 @@ namespace JokesWebApp.Data.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     JokeQuestion = table.Column<string>(type: "TEXT", nullable: false),
-                    JokeAnswer = table.Column<string>(type: "TEXT", nullable: false)
+                    JokeAnswer = table.Column<string>(type: "TEXT", nullable: false),
+                    Poster = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

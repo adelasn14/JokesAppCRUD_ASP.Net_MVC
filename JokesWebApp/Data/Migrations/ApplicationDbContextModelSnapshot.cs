@@ -31,6 +31,10 @@ namespace JokesWebApp.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    //b.Property<string>("Poster")
+                    //    .IsRequired()
+                    //    .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.ToTable("Joke");
