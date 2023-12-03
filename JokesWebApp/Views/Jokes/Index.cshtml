@@ -32,14 +32,7 @@
                     @Html.DisplayFor(modelItem => item.JokeQuestion)
                 </td>
                 <td>
-                    @if (uploader != null)
-                    {
-                        @uploader.Email
-                    }
-                    else
-                    {
-                        <span>User not found</span>
-                    }
+                    @uploader.Email
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
